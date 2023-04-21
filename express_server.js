@@ -76,20 +76,34 @@ app.post("/logout", (req, res) => {
 });
 
 app.get("/register", (req, res) => {
+  const user = getUser(req);
   const templateVars = {
-    user: req.cookies ? req.cookies["user_id"] : null,
+    user: user,
   };
   res.render("urls_register", templateVars);
 });
 
 app.post("/register", (req, res) => {
-  const id = generateRandomId(); //generate random user id
-  const email = req.body.email; //get email from request body object
-  const password = req.body.password; //get password from request body object
-  const newUser = { id: id, email: email, password: password }; //create new object to store these details for the new user. using shorthand to make key value pairs. 
-  users[id] = newUser; //using square brackets around id to define it as a new key, value is newUser object
+  const id = generateRandomId();
+  const email = req.body.email;
+  const password = req.body.password;
+
+  // Check for empty email or password
+  if (!email || !password) {
+    res.status(400).send("E-mail and password are required.");
+  }
+
+  // Check if email is already in use
+  const existingUser = getUserByEmail(email, users);
+  if (existingUser) {
+    res.status(400).send("E-mail already in use.");
+  }
+
+  const newUser = { id: id, email: email, password: password };
+  users[id] = newUser;
+
   res.cookie('user_id', newUser.id);
-  res.redirect("/urls"); //redirecting to urls 
+  res.redirect("/urls");
 });
 
 app.get("/urls", (req, res) => {
