@@ -18,8 +18,8 @@
         <h5 class="card-title">TinyURL for: <%= longURL %>
         </h5>
         <p class="card-text">
-          Short URL ID: <a href="/u/<%= user.urls[id] %>">
-            <%= user.urls[id] %>
+          Short URL ID: <a href="/u/<%= id %>">
+            <%= id %>
           </a>
         <form class="form-group" action="/urls/<%= id %>" method="POST">
           <h2> Edit </h2>
@@ -35,7 +35,6 @@
       </p>
     </div>
     </div>
-
     <!-- Bootstrap JS -->
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
       integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
