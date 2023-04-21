@@ -7,9 +7,20 @@ app.set("view engine", "ejs");
 app.use(cookieParser());
 
 
-const urlDatabase = { //where URL and shortenedURL is stored 
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com",
+// const urlDatabase = { //where URL and shortenedURL is stored 
+//   "b2xVn2": "http://www.lighthouselabs.ca",
+//   "9sm5xK": "http://www.google.com",
+// };
+
+const urlDatabase = {
+  b6UTxQ: {
+    longURL: "https://www.tsn.ca",
+    userID: "aJ48lW",
+  },
+  i3BoGr: {
+    longURL: "https://www.google.ca",
+    userID: "aJ48lW",
+  },
 };
 
 const users = {
@@ -60,6 +71,9 @@ app.get("/", (req, res) => {
 
 app.get("/login", (req, res) => {
   const user = getUser(req);
+  if (user) {
+    return res.redirect("/urls");
+  }
   const templateVars = { user: user };
   res.render("urls_login", templateVars);
 });
@@ -67,11 +81,7 @@ app.get("/login", (req, res) => {
 app.post("/login", (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
-  console.log(email, password);
-
   const user = getUserByEmail(email, users);
-  console.log(user);
-
   if (!user) {
     return res.status(403).send("User with that email not found");
   }
@@ -91,6 +101,9 @@ app.post("/logout", (req, res) => {
 
 app.get("/register", (req, res) => {
   const user = getUser(req);
+  if (user) {
+    return res.redirect("/urls");
+  }
   const templateVars = {
     user: user,
   };
@@ -121,18 +134,21 @@ app.post("/register", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-  // const userId = req.cookies["user_id"];
-  // const user = users[userId];
   const user = getUser(req);
+  const urls = urlDatabase;
   const templateVars = {
-    urls: urlDatabase,
+    urls: urls,
     user: user ? user : null,
+    id: req.params.id
   };
   res.render("urls_index", templateVars);
 });
 
 app.get("/urls/new", (req, res) => {
   const user = getUser(req);
+  if (!user) {
+    return res.redirect("/login");
+  }
   const templateVars = {
     user: user ? user : null,
   };
@@ -141,15 +157,19 @@ app.get("/urls/new", (req, res) => {
 
 
 app.post("/urls", (req, res) => {
+  const user = getUser(req);
+  if (!user) {
+    return res.status(401).send("You must be logged in to shorten URLs.");
+  }
   const id = generateRandomId();
   const longURL = req.body.longURL;
-  urlDatabase[id] = longURL;
+  urlDatabase[id] = { longURL: longURL, userID: user.id };
   res.redirect(`/urls/${id}`);
 });
 
 app.get("/urls/:shortURL", (req, res) => {
   const shortURL = req.params.shortURL;
-  const longURL = urlDatabase[shortURL];
+  const longURL = urlDatabase[shortURL]?.longURL;
   if (!longURL) {
     res.status(404).send("Short URL not found");
   } else {
@@ -166,7 +186,7 @@ app.post("/urls/:id/delete", (req, res) => {
 app.get("/urls/:id/edit", (req, res) => {
   const user = getUser(req);
   const id = req.params.id;
-  const longURL = urlDatabase[id];
+  const longURL = urlDatabase[id]?.longURL;
   const templateVars = { id: id, longURL: longURL, user: user };
   res.render("urls_show", templateVars);
 });
@@ -174,7 +194,7 @@ app.get("/urls/:id/edit", (req, res) => {
 app.post("/urls/:id", (req, res) => {
   const id = req.params.id;
   const longURL = req.body.longURL;
-  urlDatabase[id] = longURL;
+  urlDatabase[id] = { longURL: longURL };
   res.redirect("/urls");
 });
 
