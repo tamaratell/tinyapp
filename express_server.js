@@ -7,6 +7,24 @@ app.set("view engine", "ejs");
 app.use(cookieParser());
 
 
+const urlDatabase = { //where URL and shortenedURL is stored 
+  "b2xVn2": "http://www.lighthouselabs.ca",
+  "9sm5xK": "http://www.google.com",
+};
+
+const users = {
+  userRandomID: {
+    id: "userRandomID",
+    email: "user@example.com",
+    password: "purple-monkey-dinosaur",
+  },
+  user2RandomID: {
+    id: "user2RandomID",
+    email: "user2@example.com",
+    password: "dishwasher-funk",
+  },
+};
+
 const generateRandomId = () => { //generates shortURL id
   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   let id = '';
@@ -32,23 +50,6 @@ function getUser(req) {
   return users[userId] || null;
 }
 
-const urlDatabase = { //where URL and shortenedURL is stored 
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com",
-};
-
-const users = {
-  userRandomID: {
-    id: "userRandomID",
-    email: "user@example.com",
-    password: "purple-monkey-dinosaur",
-  },
-  user2RandomID: {
-    id: "user2RandomID",
-    email: "user2@example.com",
-    password: "dishwasher-funk",
-  },
-};
 
 
 app.use(express.urlencoded({ extended: true }));
@@ -58,8 +59,6 @@ app.get("/", (req, res) => {
 });
 
 app.get("/login", (req, res) => {
-  // const email = req.body.email;
-  // const password = req.body.password;
   const user = getUser(req);
   const templateVars = { user: user };
   res.render("urls_login", templateVars);
@@ -68,19 +67,26 @@ app.get("/login", (req, res) => {
 app.post("/login", (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
+  console.log(email, password);
+
+  const user = getUserByEmail(email, users);
+  console.log(user);
+
+  if (!user) {
+    return res.status(403).send("User with that email not found");
+  }
+
+  if (user.password !== password) {
+    return res.status(403).send("Incorrect password");
+  }
+
+  res.cookie("user_id", user.id);
   res.redirect("/urls");
-  //const user = getUserByEmail(email, users);
-  // if (user && bcrypt.compareSync(password, user.password)) {
-  //   res.cookie('user_id', user.id);
-  //   res.redirect("/urls");
-  // } else {
-  //   res.status(403).send("Incorrect email or password.");
-  // }
 });
 
 app.post("/logout", (req, res) => {
   res.clearCookie("user_id");
-  res.redirect("/urls");
+  res.redirect("/login");
 });
 
 app.get("/register", (req, res) => {
