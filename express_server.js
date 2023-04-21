@@ -7,7 +7,7 @@ app.set("view engine", "ejs");
 app.use(cookieParser());
 
 
-const generateShortURL = () => {
+const generateShortURL = () => { //generates shortURL id
   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   let id = '';
   for (const character of characters) {
@@ -17,7 +17,7 @@ const generateShortURL = () => {
   } return id;
 };
 
-const urlDatabase = {
+const urlDatabase = { //where URL and shortenedURL is stored 
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com",
 };
@@ -28,14 +28,14 @@ app.get("/", (req, res) => {
   res.send("Hello!");
 });
 
-app.post("/login", (req, res) => {
+app.post("/login", (req, res) => { //stores username as a cookie
   const username = req.body.username;
   res.cookie('username', username);
   res.setHeader('Set-Cookie', `username=${username}`);
   res.redirect("/urls");
 });
 
-app.get("/urls", (req, res) => {
+app.get("/urls", (req, res) => { //shows us the homepage with list of shortened urls
   const templateVars = {
     urls: urlDatabase,
     username: req.cookies ? req.cookies["username"] : null,
@@ -93,6 +93,12 @@ app.post("/logout", (req, res) => {
   res.redirect("/urls");
 });
 
+app.get("/register", (req, res) => {
+  const templateVars = {
+    username: req.cookies ? req.cookies["username"] : null,
+  };
+  res.render("urls_register", templateVars);
+});
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
