@@ -56,10 +56,21 @@ const getUserByEmail = (email, users) => {
   return undefined;
 };
 
-function getUser(req) {
-  const userId = req.cookies.user_id;
-  return users[userId] || null;
-}
+const getUser = (req) => {
+  const user_id = req.cookies.user_id;
+  return users[user_id];
+};
+
+const urlsForUser = (id) => {
+  const userUrls = {};
+  for (const shortURL in urlDatabase) {
+    const url = urlDatabase[shortURL];
+    if (url.userID === id) {
+      userUrls[shortURL] = url;
+    }
+  }
+  return userUrls;
+};
 
 
 
@@ -135,14 +146,18 @@ app.post("/register", (req, res) => {
 
 app.get("/urls", (req, res) => {
   const user = getUser(req);
-  const urls = urlDatabase;
+  if (!user) {
+    res.status(401).send("You need to be logged in to view this page");
+    return;
+  }
+  const userUrls = urlsForUser(user.id);
   const templateVars = {
-    urls: urls,
-    user: user ? user : null,
-    id: req.params.id
+    urls: userUrls,
+    user: user
   };
   res.render("urls_index", templateVars);
 });
+
 
 app.get("/urls/new", (req, res) => {
   const user = getUser(req);
@@ -167,15 +182,33 @@ app.post("/urls", (req, res) => {
   res.redirect(`/urls/${id}`);
 });
 
-app.get("/urls/:shortURL", (req, res) => {
-  const shortURL = req.params.shortURL;
-  const longURL = urlDatabase[shortURL]?.longURL;
-  if (!longURL) {
+// app.get("/urls/:shortURL", (req, res) => {
+//   const shortURL = req.params.shortURL;
+//   const longURL = urlDatabase[shortURL]?.longURL;
+//   if (!longURL) {
+//     res.status(404).send("Short URL not found");
+//   } else {
+//     res.redirect(longURL);
+//   }
+// });
+
+app.get("/urls/:id", (req, res) => {
+  const user = getUser(req);
+  const id = req.params.id;
+  const url = urlDatabase[id];
+
+  if (!user) {
+    res.status(401).send("You must be logged in to view this page");
+  } else if (!url) {
     res.status(404).send("Short URL not found");
+  } else if (url.userID !== user.id) {
+    res.status(403).send("You do not have permission to view this URL");
   } else {
-    res.redirect(longURL);
+    const templateVars = { shortURL: id, longURL: url.longURL, user: user };
+    res.render("urls_show", templateVars);
   }
 });
+
 
 app.post("/urls/:id/delete", (req, res) => {
   const id = req.params.id;
@@ -183,18 +216,61 @@ app.post("/urls/:id/delete", (req, res) => {
   res.redirect("/urls");
 });
 
+// app.get("/urls/:id/edit", (req, res) => {
+//   const user = getUser(req);
+//   const id = req.params.id;
+//   const longURL = urlDatabase[id]?.longURL;
+//   const userUrls = urlsForUser(user.id);
+//   const templateVars = { id: id, longURL: longURL, user: user, urls: userUrls };
+//   console.log(templateVars);
+//   res.render("urls_show", templateVars);
+// });
+
+// app.get("/urls/:id/edit", (req, res) => {
+//   const userId = req.cookies.user_id;
+//   const user = getUserById(userId, userDatabase);
+//   const id = req.params.id;
+//   const url = urlDatabase[id];
+//   if (!url || url.userID !== user.id) {
+//     return res.status(403).send("You are not authorized to edit this URL");
+//   }
+//   const templateVars = { id: id, longURL: url.longURL, user: user };
+//   console.log(templateVars);
+//   res.render("urls_show", templateVars);
+// });
+
 app.get("/urls/:id/edit", (req, res) => {
   const user = getUser(req);
   const id = req.params.id;
-  const longURL = urlDatabase[id]?.longURL;
-  const templateVars = { id: id, longURL: longURL, user: user };
+  const url = urlDatabase[id];
+  if (!url || url.userID !== user.id) {
+    return res.status(403).send("You are not authorized to edit this URL");
+  }
+  const templateVars = { id: id, longURL: url.longURL, user: user };
+  console.log(templateVars);
   res.render("urls_show", templateVars);
 });
+
+
+// app.post("/urls/:id", (req, res) => {
+//   const id = req.params.id;
+//   const longURL = req.body.longURL;
+//   urlDatabase[id] = { longURL: longURL };
+//   res.redirect("/urls");
+// });
 
 app.post("/urls/:id", (req, res) => {
   const id = req.params.id;
   const longURL = req.body.longURL;
-  urlDatabase[id] = { longURL: longURL };
+  const url = urlDatabase[id];
+  if (!url) {
+    return res.status(404).send("URL not found");
+  }
+  const updatedUrl = {
+    longURL: longURL,
+    userID: url.userID
+  };
+  urlDatabase[id] = updatedUrl;
   res.redirect("/urls");
 });
 
