@@ -57,6 +57,14 @@ app.get("/", (req, res) => {
   res.send("Hello!");
 });
 
+app.get("/login", (req, res) => {
+  // const email = req.body.email;
+  // const password = req.body.password;
+  const user = getUser(req);
+  const templateVars = { user: user };
+  res.render("urls_login", templateVars);
+});
+
 app.post("/login", (req, res) => {
   const email = req.body.email;
   const password = req.body.password;

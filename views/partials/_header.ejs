@@ -16,14 +16,11 @@
           <button type="submit" class="btn btn-secondary">Logout</button>
         </form>
         <% } else { %>
-          <form class="form-inline" method="post" action="/login">
-            <input class="form-control" type="email" name="email" placeholder="email"
-              style="width: 300px; margin: 1em" />
-            <input class="form-control" type="password" name="password" placeholder="password"
-              style="width: 300px; margin: 1em" />
-            <button type="submit" class="btn btn-primary">Login</button>
-            <button type="button" class="btn btn-primary" onclick="window.location.href='/register'">Register</button>
-          </form>
+          <!-- <input class="form-control" type="email" name="email" placeholder="email" style="width: 300px; margin: 1em" />
+          <input class="form-control" type="password" name="password" placeholder="password"
+            style="width: 300px; margin: 1em" /> -->
+          <button type="button" class="btn btn-primary" onclick="window.location.href='/login'">Login</button>
+          <button type="button" class="btn btn-primary" onclick="window.location.href='/register'">Register</button>
           <% } %>
     </div>
   </nav>
