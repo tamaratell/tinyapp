@@ -22,6 +22,8 @@ const {
   generateRandomId
 } = require('./helpers');
 
+
+//Objects
 const urlDatabase = {
   b6UTxQ: {
     longURL: "https://www.tsn.ca",
@@ -33,7 +35,7 @@ const urlDatabase = {
   },
 };
 
-
+//user database
 const users = {
   userRandomID: {
     id: "userRandomID",
@@ -47,50 +49,13 @@ const users = {
   },
 };
 
-// const generateRandomId = () => { //generates shortURL id
-//   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-//   let id = '';
-//   for (const character of characters) {
-//     if (id.length !== 6) {
-//       id += characters.charAt(Math.floor(Math.random() * characters.length));
-//     }
-//   } return id;
-// };
-
-// const getUserByEmail = (email, users) => {
-//   for (const userId in users) {
-//     const user = users[userId];
-//     if (user.email === email) {
-//       return user;
-//     }
-//   }
-//   return undefined;
-// };
-
-// function getUser(req) {
-//   const userId = req.session.user_id;
-//   return users[userId] || null;
-// }
-
-// const urlsForUser = function(id) {
-//   const userURLs = {};
-//   for (const urlID in urlDatabase) {
-//     if (urlDatabase[urlID].userID === id) {
-//       userURLs[urlID] = {
-//         longURL: urlDatabase[urlID].longURL,
-//         shortURL: urlID
-//       };
-//     }
-//   }
-//   return userURLs;
-// };
-
-
+//ROUTE CODE 
 app.get("/", (req, res) => {
   res.send("Hello! Our homepage is located at /urls");
 });
 
 // beginning of user login and registration endpoint code
+//get login
 app.get("/login", (req, res) => {
   const user = getUser(req);
   if (user) {
@@ -100,11 +65,8 @@ app.get("/login", (req, res) => {
   res.render("urls_login", templateVars);
 });
 
-app.post("/logout", (req, res) => {
-  req.session.user_id = null;
-  res.redirect("/login");
-});
 
+//login
 app.post("/login", (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
@@ -121,6 +83,13 @@ app.post("/login", (req, res) => {
   res.redirect("/urls");
 });
 
+//logout
+app.post("/logout", (req, res) => {
+  req.session.user_id = null;
+  res.redirect("/login");
+});
+
+//get register page
 app.get("/register", (req, res) => {
   const user = getUser(req);
   if (user) {
@@ -132,6 +101,7 @@ app.get("/register", (req, res) => {
   res.render("urls_register", templateVars);
 });
 
+//register
 app.post("/register", (req, res) => {
   const id = generateRandomId();
   const email = req.body.email;
@@ -158,7 +128,6 @@ app.post("/register", (req, res) => {
 
 //end of user login/registration code
 
-//this is working
 //homepage(myUrls) route code;
 app.get("/urls", (req, res) => {
   const userID = req.session.user_id;
@@ -174,7 +143,6 @@ app.get("/urls", (req, res) => {
   };
   res.render("urls_index", templateVars);
 });
-// end of this this that is working
 
 //create a new url route
 app.get("/urls/new", (req, res) => {
@@ -188,7 +156,7 @@ app.get("/urls/new", (req, res) => {
   res.render("urls_new", templateVars);
 });
 
-//this is working
+//post a newly created url
 app.post("/urls", (req, res) => {
   const userID = req.session.user_id;
   const user = users[userID];
@@ -229,6 +197,7 @@ app.post("/urls/:id/delete", (req, res) => {
   res.redirect("/urls");
 });
 
+//edit the longURL 
 app.get("/urls/:id/edit", (req, res) => {
   const userID = req.session.user_id;
   const user = users[userID];
