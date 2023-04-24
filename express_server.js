@@ -1,11 +1,17 @@
 const express = require("express");
 const bcrypt = require("bcryptjs");
-const cookieParser = require("cookie-parser");
+const cookieSession = require('cookie-session');
 const app = express();
 const PORT = 8080; // default port 8080
 
 app.set("view engine", "ejs");
-app.use(cookieParser());
+app.use(cookieSession({
+  name: 'session',
+  keys: ["tinyAppKey"],
+
+  // Cookie Options
+  maxAge: 24 * 60 * 60 * 1000 // 24 hours
+}));
 app.use(express.urlencoded({ extended: true }));
 
 const urlDatabase = {
@@ -53,7 +59,7 @@ const getUserByEmail = (email, users) => {
 };
 
 function getUser(req) {
-  const userId = req.cookies.user_id;
+  const userId = req.session.user_id;
   return users[userId] || null;
 }
 
@@ -86,7 +92,7 @@ app.get("/login", (req, res) => {
 });
 
 app.post("/logout", (req, res) => {
-  res.clearCookie("user_id");
+  req.session.user_id = null;
   res.redirect("/login");
 });
 
@@ -102,7 +108,7 @@ app.post("/login", (req, res) => {
     return res.status(403).send("Incorrect password");
   }
 
-  res.cookie("user_id", user.id);
+  req.session.user_id = user.id;
   res.redirect("/urls");
 });
 
@@ -137,7 +143,7 @@ app.post("/register", (req, res) => {
   const newUser = { id: id, email: email, password: hashedPassword };
   users[id] = newUser;
 
-  res.cookie('user_id', newUser.id);
+  req.session.user_id = newUser.id;;
   res.redirect("/urls");
 });
 
@@ -145,7 +151,7 @@ app.post("/register", (req, res) => {
 
 //homepage (myUrls) route code
 app.get("/urls", (req, res) => {
-  const userID = req.cookies.user_id;
+  const userID = req.session.user_id;
   const user = users[userID];
   if (!user) {
     return res.send("Must log in to view urls");
@@ -202,7 +208,7 @@ app.post("/urls/:id/delete", (req, res) => {
 });
 
 app.get("/urls/:id/edit", (req, res) => {
-  const userID = req.cookies.user_id;
+  const userID = req.session.user_id;
   const user = users[userID];
   if (!user) {
     return res.send("Only user can view URLS");
@@ -215,7 +221,7 @@ app.get("/urls/:id/edit", (req, res) => {
 
 //post the edits to the shorturl (redirects back to urls page after submit)
 app.post("/urls/:id", (req, res) => {
-  const userID = req.cookies.user_id;
+  const userID = req.session.user_id;
   const user = users[userID];
   if (!user) {
     return res.send("Only user can edit URLS");
