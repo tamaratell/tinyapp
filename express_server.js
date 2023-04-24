@@ -10,7 +10,7 @@ app.use(express.urlencoded({ extended: true }));
 const urlDatabase = {
   b6UTxQ: {
     longURL: "https://www.tsn.ca",
-    userID: "aJ48lW",
+    userID: "userRandomID",
   },
   i3BoGr: {
     longURL: "https://www.google.ca",
@@ -56,9 +56,34 @@ function getUser(req) {
   return users[userId] || null;
 }
 
+// function urlsForUser(userId) {
+//   const filteredUrls = {};
+//   const keys = Object.keys(urlDatabase);
+//   for (const id of keys) {
+//     const url = urlDatabase[id];
+//     if (url.userID === userId) {
+//       filteredUrls[url] = url;
+//     }
+//   }
+//   return filteredUrls;
+// }
+
+const urlsForUser = function(id) {
+  const userURLs = {};
+  for (const urlID in urlDatabase) {
+    if (urlDatabase[urlID].userID === id) {
+      userURLs[urlID] = {
+        longURL: urlDatabase[urlID].longURL,
+        shortURL: urlID
+      };
+    }
+  }
+  return userURLs;
+};
+
 
 app.get("/", (req, res) => {
-  res.send("Hello!");
+  res.send("Hello! Our homepage is located at /urls");
 });
 
 // beginning of user login and registration endpoint code
@@ -130,12 +155,16 @@ app.post("/register", (req, res) => {
 
 //homepage (myUrls) route code
 app.get("/urls", (req, res) => {
-  const user = getUser(req);
-  const urls = urlDatabase;
+  const userID = req.cookies.user_id;
+  const user = users[userID];
+  if (!user) {
+    return res.send("Must log in to view urls");
+  };
+  const urls = urlsForUser(user.id);
+  console.log(urls);
   const templateVars = {
     urls: urls,
-    user: user ? user : null,
-    id: req.params.id
+    user
   };
   res.render("urls_index", templateVars);
 });
