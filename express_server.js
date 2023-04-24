@@ -234,6 +234,11 @@ app.get("/urls/:id/edit", (req, res) => {
 
 //post the edits to the shorturl (redirects back to urls page after submit)
 app.post("/urls/:id", (req, res) => {
+  const userID = req.cookies.user_id;
+  const user = users[userID];
+  if (!user) {
+    return res.send("Only user can edit URLS");
+  };
   const id = req.params.id;
   const url = urlDatabase[id];
   const updatedLongURL = req.body.longURL;
