@@ -212,8 +212,20 @@ app.post("/urls/:id/delete", (req, res) => {
 });
 
 //edit the shortURL (takes you to the edit page)
+// app.get("/urls/:id/edit", (req, res) => {
+//   const user = getUser(req);
+//   const id = req.params.id;
+//   const longURL = urlDatabase[id]?.longURL;
+//   const templateVars = { id: id, longURL: longURL, user: user };
+//   res.render("urls_show", templateVars);
+// });
+
 app.get("/urls/:id/edit", (req, res) => {
-  const user = getUser(req);
+  const userID = req.cookies.user_id;
+  const user = users[userID];
+  if (!user) {
+    return res.send("Only user can view URLS");
+  };
   const id = req.params.id;
   const longURL = urlDatabase[id]?.longURL;
   const templateVars = { id: id, longURL: longURL, user: user };
@@ -223,8 +235,11 @@ app.get("/urls/:id/edit", (req, res) => {
 //post the edits to the shorturl (redirects back to urls page after submit)
 app.post("/urls/:id", (req, res) => {
   const id = req.params.id;
-  const longURL = req.body.longURL;
-  urlDatabase[id] = { longURL: longURL };
+  const url = urlDatabase[id];
+  const updatedLongURL = req.body.longURL;
+  url.longURL = updatedLongURL;
+  console.log("updated long URL", url.longURL);
+
   res.redirect("/urls");
 });
 
